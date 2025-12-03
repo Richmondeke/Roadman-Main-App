@@ -167,9 +167,14 @@ export default function App() {
       
       {/* Navbar */}
       <nav className="sticky top-0 z-50 flex justify-between items-center px-6 py-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('HOME')}>
-          <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(14,165,233,0.3)]">R</div>
-          <span className="font-display font-bold text-xl text-white tracking-tight">Roadman</span>
+        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setView('HOME')}>
+          <div className="relative w-10 h-10 flex items-center justify-center rounded-full shadow-[0_0_15px_rgba(14,165,233,0.3)] bg-slate-800 border border-brand-500/30 overflow-hidden">
+             <div className="absolute inset-0 bg-brand-500/10 rounded-full group-hover:bg-brand-500/20 transition-all"></div>
+             <svg className="w-7 h-7 text-brand-400 animate-[spin_6s_linear_infinite]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+             </svg>
+          </div>
+          <span className="font-display font-bold text-xl text-white tracking-tight group-hover:text-brand-400 transition-colors">Roadman</span>
         </div>
         
         <div className="flex items-center gap-4">
