@@ -127,8 +127,8 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
             Adventure Awaits
           </span>
           <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-md leading-tight">
-            Trip Planner for the <br/>
-            <span className="text-brand-orange">Adventurers Always on the Road.</span>
+            All in one hospitality app <br/>
+            <span className="text-brand-orange">for Adventurers.</span>
           </h1>
           <p className="text-white/90 text-sm md:text-lg font-medium px-4">
             Book flights, stays, and safe transport for your next big journey.
