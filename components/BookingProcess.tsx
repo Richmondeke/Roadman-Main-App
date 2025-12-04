@@ -52,8 +52,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
     stops: ['']
   });
 
-  // --- State for Stay Dates ---
-  // Default to tomorrow + 3 nights for demo purposes
+  // --- State for Booking Dates (Stays, Cars, Security) ---
   const getTomorrow = () => {
     const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0];
   };
@@ -61,25 +60,54 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
     const d = new Date(); d.setDate(d.getDate() + 4); return d.toISOString().split('T')[0];
   };
 
-  const [stayDates, setStayDates] = useState({
-    checkIn: getTomorrow(),
-    checkOut: getFourDaysFromNow()
+  const [bookingDates, setBookingDates] = useState({
+    start: getTomorrow(),
+    end: getFourDaysFromNow()
   });
 
-  // --- Calculations for Stays ---
-  const calculateNights = () => {
-    const start = new Date(stayDates.checkIn);
-    const end = new Date(stayDates.checkOut);
+  // --- State for Security Configuration ---
+  const [securityConfig, setSecurityConfig] = useState({
+    personnel: isSecurity(offer) ? offer.personnel_count || 1 : 1,
+    hoursPerDay: 12
+  });
+
+  // --- Calculations ---
+  const calculateDays = () => {
+    const start = new Date(bookingDates.start);
+    const end = new Date(bookingDates.end);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-    return diffDays > 0 ? diffDays : 1; // Minimum 1 night
+    return diffDays > 0 ? diffDays : 1; // Minimum 1 day
   };
 
-  const getStayTotal = () => {
-    if (!isStay(offer)) return '0';
-    const nights = calculateNights();
-    const pricePerNight = parseFloat(offer.price_per_night);
-    return (pricePerNight * nights).toFixed(2);
+  const calculateTotalAmount = () => {
+      const days = calculateDays();
+
+      if (isFlight(offer)) {
+          return offer.total_amount;
+      }
+      
+      if (isStay(offer)) {
+          const pricePerNight = parseFloat(offer.price_per_night);
+          return (pricePerNight * days).toFixed(2);
+      }
+      
+      if (isCar(offer)) {
+          const pricePerDay = parseFloat(offer.price_per_day);
+          return (pricePerDay * days).toFixed(2);
+      }
+      
+      if (isSecurity(offer)) {
+          const hourlyRate = parseFloat(offer.hourly_rate);
+          const total = hourlyRate * securityConfig.personnel * securityConfig.hoursPerDay * days;
+          return total.toFixed(2);
+      }
+      
+      if (isExperience(offer)) {
+          return offer.price;
+      }
+
+      return '0';
   };
 
   // --- Handlers for Ride Configuration ---
@@ -158,13 +186,8 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
 
   const renderSummary = () => {
     // Dynamic Price Logic
-    let basePrice = '0';
-    if (isFlight(offer)) basePrice = offer.total_amount;
-    else if (isStay(offer)) basePrice = getStayTotal(); // Use calculated total
-    else if (isCar(offer)) basePrice = offer.price_per_day;
-    else if (isSecurity(offer)) basePrice = offer.hourly_rate;
-    else if (isExperience(offer)) basePrice = offer.price;
-
+    let basePrice = calculateTotalAmount();
+    
     const baseCurrency = isFlight(offer) ? offer.total_currency : 
                         (offer as any).currency || 'USD';
 
@@ -268,37 +291,136 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                             <ModernDatePicker 
                                 label="Check-In" 
-                                value={stayDates.checkIn} 
-                                onChange={(val) => setStayDates(prev => ({...prev, checkIn: val}))}
+                                value={bookingDates.start} 
+                                onChange={(val) => setBookingDates(prev => ({...prev, start: val}))}
                                 minDate={new Date().toISOString().split('T')[0]}
                             />
                             <ModernDatePicker 
                                 label="Check-Out" 
-                                value={stayDates.checkOut} 
-                                onChange={(val) => setStayDates(prev => ({...prev, checkOut: val}))}
-                                minDate={stayDates.checkIn}
+                                value={bookingDates.end} 
+                                onChange={(val) => setBookingDates(prev => ({...prev, end: val}))}
+                                minDate={bookingDates.start}
                             />
                         </div>
                         <div className="flex justify-between items-center bg-slate-800 p-3 rounded-lg">
                             <div className="text-sm text-gray-300">
-                                {offer.price_per_night} {offer.currency} x {calculateNights()} nights
-                            </div>
-                            <div className="font-mono font-bold text-brand-400 text-lg">
-                                {getStayTotal()} {offer.currency}
+                                {offer.price_per_night} {offer.currency} x {calculateDays()} nights
                             </div>
                         </div>
                     </div>
                 </div>
             )}
             
-            {/* --- OTHER SUMMARIES --- */}
-            {(isCar(offer) || isSecurity(offer) || isExperience(offer)) && (
+            {/* --- CAR SUMMARY --- */}
+            {isCar(offer) && (
+                 <div className="flex flex-col gap-6 bg-slate-900/50 p-4 md:p-6 rounded-xl border border-slate-700">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <img src={offer.image} alt={`${offer.brand} ${offer.model}`} className="w-full sm:w-32 h-48 sm:h-32 object-cover rounded-lg bg-slate-800" />
+                        <div className="flex-1">
+                            <h4 className="font-bold text-white text-xl break-words">{offer.brand} {offer.model}</h4>
+                            <p className="text-sm text-gray-400 mb-2">
+                                {offer.type} • {offer.seats} Seats
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-brand-400 border border-brand-900/50 bg-brand-900/10 px-2 py-1 rounded w-fit">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                Instant Confirmation
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-slate-700 pt-4">
+                        <h5 className="text-xs uppercase font-bold text-gray-500 mb-3 tracking-wider">Rental Duration</h5>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                            <ModernDatePicker 
+                                label="Pickup Date" 
+                                value={bookingDates.start} 
+                                onChange={(val) => setBookingDates(prev => ({...prev, start: val}))}
+                                minDate={new Date().toISOString().split('T')[0]}
+                            />
+                            <ModernDatePicker 
+                                label="Drop-off Date" 
+                                value={bookingDates.end} 
+                                onChange={(val) => setBookingDates(prev => ({...prev, end: val}))}
+                                minDate={bookingDates.start}
+                            />
+                        </div>
+                        <div className="flex justify-between items-center bg-slate-800 p-3 rounded-lg">
+                            <div className="text-sm text-gray-300">
+                                {offer.price_per_day} {offer.currency} x {calculateDays()} days
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- SECURITY SUMMARY --- */}
+            {isSecurity(offer) && (
+                <div className="flex flex-col gap-6 bg-slate-900/50 p-4 md:p-6 rounded-xl border border-slate-700">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <img src={offer.image} alt={offer.title} className="w-full sm:w-32 h-48 sm:h-32 object-cover rounded-lg bg-slate-800" />
+                        <div className="flex-1">
+                            <h4 className="font-bold text-white text-xl break-words">{offer.title}</h4>
+                            <p className="text-sm text-gray-400 mb-1">{offer.type}</p>
+                            <p className="text-xs text-brand-400 font-mono border border-brand-900/50 bg-brand-900/10 px-2 py-1 rounded w-fit">
+                                {offer.certification}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-slate-700 pt-4">
+                        <h5 className="text-xs uppercase font-bold text-gray-500 mb-3 tracking-wider">Protection Details</h5>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                            <ModernDatePicker 
+                                label="Start Date" 
+                                value={bookingDates.start} 
+                                onChange={(val) => setBookingDates(prev => ({...prev, start: val}))}
+                                minDate={new Date().toISOString().split('T')[0]}
+                            />
+                            <ModernDatePicker 
+                                label="End Date" 
+                                value={bookingDates.end} 
+                                onChange={(val) => setBookingDates(prev => ({...prev, end: val}))}
+                                minDate={bookingDates.start}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                             <RoadmanInput 
+                                label="No. of Guards"
+                                type="number"
+                                min={1}
+                                max={50}
+                                value={securityConfig.personnel}
+                                onChange={(e) => setSecurityConfig(prev => ({...prev, personnel: parseInt(e.target.value) || 1}))}
+                             />
+                             <RoadmanInput 
+                                label="Hours / Day"
+                                type="number"
+                                min={4}
+                                max={24}
+                                value={securityConfig.hoursPerDay}
+                                onChange={(e) => setSecurityConfig(prev => ({...prev, hoursPerDay: parseInt(e.target.value) || 4}))}
+                             />
+                        </div>
+                        <div className="flex justify-between items-center bg-slate-800 p-3 rounded-lg flex-wrap gap-2">
+                            <div className="text-sm text-gray-300">
+                                {offer.hourly_rate} {offer.currency}/hr
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                x {securityConfig.personnel} guards x {securityConfig.hoursPerDay}h x {calculateDays()} days
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- EXPERIENCE SUMMARY (Simple) --- */}
+            {isExperience(offer) && (
                  <div className="flex flex-col sm:flex-row gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-                    <img src={offer.image} alt={'title' in offer ? offer.title : offer.model} className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg bg-slate-800" />
+                    <img src={offer.image} alt={offer.title} className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg bg-slate-800" />
                     <div className="flex-1">
-                        <h4 className="font-bold text-white text-lg break-words">{'title' in offer ? offer.title : `${offer.brand} ${offer.model}`}</h4>
+                        <h4 className="font-bold text-white text-lg break-words">{offer.title}</h4>
                         <p className="text-sm text-gray-400">
-                            {'location' in offer ? offer.location : 'type' in offer ? offer.type : ''}
+                            {offer.location} • {offer.duration_days} Days
                         </p>
                     </div>
                 </div>
