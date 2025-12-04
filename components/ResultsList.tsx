@@ -19,6 +19,18 @@ const parseDurationToMinutes = (isoDuration: string): number => {
     return (hours * 60) + minutes;
 };
 
+// Helper to get cabin class display name
+const formatCabinClass = (code: string | undefined): string => {
+    if (!code) return 'Economy';
+    switch(code.toLowerCase()) {
+        case 'economy': return 'Economy';
+        case 'premium_economy': return 'Premium Econ';
+        case 'business': return 'Business';
+        case 'first': return 'First Class';
+        default: return code;
+    }
+};
+
 export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onBack }) => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   
@@ -39,6 +51,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
   const [priceLimit, setPriceLimit] = useState<number>(priceRange.max);
   const [selectedStops, setSelectedStops] = useState<number[]>([]); // 0 = Direct, 1 = 1 Stop
   const [selectedAirlines, setSelectedAirlines] = useState<string[]>([]);
+  const [selectedCabinClasses, setSelectedCabinClasses] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<'CHEAPEST' | 'FASTEST'>('CHEAPEST');
 
   // Update price limit initially when results load
@@ -54,11 +67,8 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
           if (price > priceLimit) return false;
 
           // 2. Stops Filter
-          // Note: Duffel slices segments length: 1 segment = 0 stops (Direct)
           const stops = offer.slices[0].segments.length - 1;
           if (selectedStops.length > 0) {
-              // Map UI logic to data logic
-              // UI: 0 (Direct), 1 (1 Stop), 2 (2+ Stops)
               const normalizedStops = stops > 1 ? 2 : stops;
               if (!selectedStops.includes(normalizedStops)) return false;
           }
@@ -68,10 +78,17 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
               if (!selectedAirlines.includes(offer.owner.name)) return false;
           }
 
+          // 4. Cabin Class Filter
+          // Use optional chaining to safely access nested passengers property
+          const cabinClass = offer.slices[0].segments[0].passengers?.[0]?.cabin_class || 'economy';
+          if (selectedCabinClasses.length > 0) {
+              if (!selectedCabinClasses.includes(cabinClass)) return false;
+          }
+
           return true;
       });
 
-      // 4. Sorting
+      // 5. Sorting
       return filtered.sort((a, b) => {
           if (sortBy === 'CHEAPEST') {
               return parseFloat(a.total_amount) - parseFloat(b.total_amount);
@@ -81,7 +98,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
           }
       });
 
-  }, [results, priceLimit, selectedStops, selectedAirlines, sortBy]);
+  }, [results, priceLimit, selectedStops, selectedAirlines, selectedCabinClasses, sortBy]);
 
 
   // --- Handlers ---
@@ -91,6 +108,10 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
 
   const toggleAirline = (airline: string) => {
       setSelectedAirlines(prev => prev.includes(airline) ? prev.filter(a => a !== airline) : [...prev, airline]);
+  };
+
+  const toggleCabinClass = (cabin: string) => {
+      setSelectedCabinClasses(prev => prev.includes(cabin) ? prev.filter(c => c !== cabin) : [...prev, cabin]);
   };
 
   return (
@@ -139,6 +160,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
                             setPriceLimit(priceRange.max);
                             setSelectedStops([]);
                             setSelectedAirlines([]);
+                            setSelectedCabinClasses([]);
                         }}
                         className="text-xs text-brand-400 hover:text-brand-300 underline"
                     >
@@ -189,6 +211,32 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
                     </div>
                 </div>
 
+                {/* Cabin Class Filter */}
+                <div className="mb-8">
+                    <label className="text-sm font-bold text-gray-300 mb-3 block">Cabin Class</label>
+                    <div className="space-y-2">
+                        {[
+                            { label: 'Economy', val: 'economy' },
+                            { label: 'Premium Economy', val: 'premium_economy' },
+                            { label: 'Business', val: 'business' },
+                            { label: 'First', val: 'first' }
+                        ].map((opt) => (
+                            <label key={opt.val} className="flex items-center gap-3 cursor-pointer group">
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCabinClasses.includes(opt.val) ? 'bg-brand-600 border-brand-600' : 'border-slate-600 bg-slate-900 group-hover:border-slate-500'}`}>
+                                    {selectedCabinClasses.includes(opt.val) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                                </div>
+                                <input 
+                                    type="checkbox" 
+                                    className="hidden"
+                                    checked={selectedCabinClasses.includes(opt.val)}
+                                    onChange={() => toggleCabinClass(opt.val)}
+                                />
+                                <span className="text-sm text-gray-300 group-hover:text-white transition-colors">{opt.label}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Airlines Filter */}
                 <div>
                     <label className="text-sm font-bold text-gray-300 mb-3 block">Airlines</label>
@@ -226,6 +274,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
                                 setPriceLimit(priceRange.max);
                                 setSelectedStops([]);
                                 setSelectedAirlines([]);
+                                setSelectedCabinClasses([]);
                             }}
                             className="text-brand-400 hover:text-white underline mt-2"
                         >
@@ -248,7 +297,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
                             <div className="flex flex-col md:flex-row gap-6">
                                 {/* Flight Content Column */}
                                 <div className="flex-1">
-                                    {/* Header with Airline */}
+                                    {/* Header with Airline and Class */}
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-900 flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden">
                                             {offer.owner.logo_symbol_url ? (
@@ -257,8 +306,13 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, onSelect, onB
                                                 offer.owner.name.substring(0, 2).toUpperCase()
                                             )}
                                         </div>
-                                        <div className="overflow-hidden">
-                                            <div className="font-bold text-white text-base truncate">{offer.owner.name}</div>
+                                        <div className="overflow-hidden flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <div className="font-bold text-white text-base truncate">{offer.owner.name}</div>
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-700 text-gray-300 uppercase tracking-wide border border-slate-600">
+                                                    {formatCabinClass(offer.slices[0].segments[0].passengers?.[0]?.cabin_class)}
+                                                </span>
+                                            </div>
                                             <div className="text-xs text-gray-500 truncate">Operated by {offer.slices[0].segments[0].marketing_carrier.name}</div>
                                         </div>
                                     </div>

@@ -22,6 +22,11 @@ export interface FlightOffer {
       departing_at: string;
       arriving_at: string;
       marketing_carrier: { name: string };
+      // Added passengers array for segment-level details like cabin class
+      passengers?: Array<{
+        cabin_class?: string;
+        cabin_class_marketing_name?: string;
+      }>;
     }>;
   }>;
 }

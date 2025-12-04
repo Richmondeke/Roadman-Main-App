@@ -23,7 +23,8 @@ const MOCK_OFFERS: FlightOffer[] = [
         destination: { iata_code: "LHR", name: "London" },
         departing_at: "2026-06-15T18:00:00",
         arriving_at: "2026-06-16T06:30:00",
-        marketing_carrier: { name: "NeonAir" }
+        marketing_carrier: { name: "NeonAir" },
+        passengers: [{ cabin_class: "economy", cabin_class_marketing_name: "Economy Light" }]
       }]
     }]
   },
@@ -40,7 +41,8 @@ const MOCK_OFFERS: FlightOffer[] = [
         destination: { iata_code: "LHR", name: "London" },
         departing_at: "2026-06-15T20:00:00",
         arriving_at: "2026-06-16T09:15:00",
-        marketing_carrier: { name: "CyberWings" }
+        marketing_carrier: { name: "CyberWings" },
+        passengers: [{ cabin_class: "economy", cabin_class_marketing_name: "Standard" }]
       }]
     }]
   },
@@ -57,7 +59,8 @@ const MOCK_OFFERS: FlightOffer[] = [
         destination: { iata_code: "LHR", name: "London" },
         departing_at: "2026-06-15T09:00:00",
         arriving_at: "2026-06-15T20:45:00",
-        marketing_carrier: { name: "OrbitOne" }
+        marketing_carrier: { name: "OrbitOne" },
+        passengers: [{ cabin_class: "business", cabin_class_marketing_name: "Orbit Biz" }]
       }]
     }]
   }
@@ -104,7 +107,12 @@ const getMockDataForParams = (params: SearchParams) => {
                         destination: { ...seg.destination, iata_code: params.destination || 'LHR' },
                         departing_at: `${params.departureDate}T${depTime}`,
                         // Simplified arrival date for robustness
-                        arriving_at: `${params.departureDate}T${arrTime}` 
+                        arriving_at: `${params.departureDate}T${arrTime}`,
+                        // Ensure mock data respects requested cabin class
+                        passengers: [{ 
+                            cabin_class: params.cabinClass || "economy", 
+                            cabin_class_marketing_name: (params.cabinClass || "economy").toUpperCase() 
+                        }]
                     };
                 })
             }))
@@ -334,7 +342,7 @@ export const getTrendingDestinations = async (origin: string): Promise<Destinati
     const candidates = [
         { code: 'LHR', img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80' },
         { code: 'CDG', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80' },
-        { code: 'DXB', img: 'https://images.unsplash.com/photo-1512453979798-5ea932a23644?auto=format&fit=crop&w=600&q=80' },
+        // Removed Dubai (DXB) as requested
         { code: 'JFK', img: 'https://images.unsplash.com/photo-1496442226666-8d4a0e62e6e9?auto=format&fit=crop&w=600&q=80' },
         { code: 'HND', img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=600&q=80' },
         { code: 'SYD', img: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80' }
