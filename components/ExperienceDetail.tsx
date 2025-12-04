@@ -16,14 +16,14 @@ export const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, 
   return (
     <div className="w-full min-h-screen pb-20">
         {/* Hero Section */}
-        <div className="relative h-[60vh] w-full">
+        <div className="relative h-[50vh] md:h-[60vh] w-full">
             <img src={experience.image} alt={experience.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
             
             <div className="absolute top-6 left-6 z-20">
                 <button 
                     onClick={onBack}
-                    className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full text-white hover:bg-white/20 transition-all border border-white/10"
+                    className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full text-white hover:bg-white/20 transition-all border border-white/10 text-sm"
                 >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     Back to Collection
@@ -32,7 +32,7 @@ export const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, 
 
             <motion.div 
                 layoutId={`card-${experience.id}`}
-                className="absolute bottom-0 left-0 right-0 p-8 md:p-16 max-w-5xl mx-auto"
+                className="absolute bottom-0 left-0 right-0 p-6 md:p-16 max-w-5xl mx-auto"
             >
                 <div className="flex gap-3 mb-4">
                      <span className="bg-brand-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_15px_rgba(14,165,233,0.5)]">
@@ -43,30 +43,30 @@ export const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, 
                         {experience.location}
                      </span>
                 </div>
-                <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-4 leading-tight">
+                <h1 className="text-3xl md:text-6xl font-display font-bold text-white mb-4 leading-tight">
                     {experience.title}
                 </h1>
-                <p className="text-lg md:text-xl text-gray-300 max-w-2xl leading-relaxed">
+                <p className="text-base md:text-xl text-gray-300 max-w-2xl leading-relaxed">
                     {experience.description}
                 </p>
             </motion.div>
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 -mt-10 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-5xl mx-auto px-4 -mt-6 md:-mt-10 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
             
             {/* Main Content */}
-            <div className="md:col-span-2 space-y-8">
+            <div className="md:col-span-2 space-y-8 order-2 md:order-1">
                 {/* Tabs */}
-                <div className="flex border-b border-slate-700">
+                <div className="flex border-b border-slate-700 overflow-x-auto">
                     <button 
                         onClick={() => setActiveTab('ITINERARY')}
-                        className={`px-6 py-4 font-bold text-sm uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'ITINERARY' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+                        className={`px-6 py-4 font-bold text-sm uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap ${activeTab === 'ITINERARY' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
                     >
                         Itinerary
                     </button>
                     <button 
                         onClick={() => setActiveTab('INCLUDED')}
-                        className={`px-6 py-4 font-bold text-sm uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'INCLUDED' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+                        className={`px-6 py-4 font-bold text-sm uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap ${activeTab === 'INCLUDED' ? 'border-brand-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
                     >
                         What's Included
                     </button>
@@ -84,8 +84,8 @@ export const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, 
                                         <div className="w-0.5 flex-1 bg-slate-800 my-2"></div>
                                     </div>
                                     <div className="pb-8">
-                                        <h4 className="text-xl font-bold text-white mb-2">{day.title}</h4>
-                                        <p className="text-gray-400 leading-relaxed">{day.description}</p>
+                                        <h4 className="text-lg md:text-xl font-bold text-white mb-2">{day.title}</h4>
+                                        <p className="text-gray-400 leading-relaxed text-sm md:text-base">{day.description}</p>
                                     </div>
                                 </div>
                             ))}
@@ -107,9 +107,21 @@ export const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, 
                 </div>
             </div>
 
-            {/* Sticky Sidebar Booking */}
-            <div className="md:col-span-1">
-                <RoadmanCard className="sticky top-24 border-t-4 border-t-brand-500 shadow-2xl">
+            {/* Sticky Sidebar Booking (Order 1 on mobile to be visible first or Order 2? 
+               Usually better to have summary visible, but details below. 
+               Let's keep it order-1 on mobile so they see price immediately? 
+               No, usually hero -> content -> price/CTA on mobile. 
+               Let's set order-1 so it stacks on top on mobile below hero? 
+               Actually, for mobile, it's often better to have it at bottom or after hero. 
+               Let's use default order (mobile: stacked, desktop: side) 
+               which means it will appear AFTER main content if we don't change order.
+               Wait, in the previous div I set `order-2 md:order-1`. 
+               So Content is Order 2 on Mobile.
+               Sidebar should be Order 1 on Mobile? 
+               Let's make Sidebar Order 1 on Mobile so they see Price immediately.
+            */}
+            <div className="md:col-span-1 order-1 md:order-2">
+                <RoadmanCard className="md:sticky md:top-24 border-t-4 border-t-brand-500 shadow-2xl">
                     <div className="flex items-center justify-between mb-6">
                         <div>
                              <p className="text-sm text-gray-400">Total Package Price</p>

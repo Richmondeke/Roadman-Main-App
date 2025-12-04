@@ -107,7 +107,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
   return (
     <div className="relative w-full">
       {/* Hero Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden h-[600px] rounded-b-[3rem]">
+      <div className="absolute inset-0 z-0 overflow-hidden h-[500px] md:h-[600px] rounded-b-[2rem] md:rounded-b-[3rem]">
         <img 
           src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-4.0.3&auto=format&fit=crop&w=2021&q=80" 
           alt="Travel Background" 
@@ -116,21 +116,21 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60 dark:from-slate-900/50 dark:to-slate-900"></div>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center pt-24 px-4 pb-24">
+      <div className="relative z-10 flex flex-col items-center pt-24 px-4 pb-12 md:pb-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-10 max-w-2xl"
+          className="text-center mb-10 max-w-2xl px-2"
         >
-          <span className="inline-block py-1 px-3 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-semibold mb-4 border border-white/30">
+          <span className="inline-block py-1 px-3 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs md:text-sm font-semibold mb-4 border border-white/30">
             Adventure Awaits
           </span>
-          <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-md">
+          <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-md leading-tight">
             Explore the World, <br/>
             <span className="text-brand-orange">Together.</span>
           </h1>
-          <p className="text-white/90 text-lg font-medium">
+          <p className="text-white/90 text-sm md:text-lg font-medium px-4">
             Book flights, stays, and safe transport for your next family getaway.
           </p>
         </motion.div>
@@ -143,7 +143,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                 key={s.id}
                 onClick={() => setActiveService(s.id)}
                 className={`
-                    flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all
+                    flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 rounded-full font-medium text-xs md:text-sm transition-all
                     ${activeService === s.id 
                         ? 'bg-white text-brand-600 shadow-lg scale-105' 
                         : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-md'
@@ -157,7 +157,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
            </div>
 
           <motion.div layout>
-            <RoadmanCard className="w-full min-h-[300px] shadow-2xl border-0 !p-8">
+            <RoadmanCard className="w-full min-h-[300px] shadow-2xl border-0 !p-4 md:!p-8">
               <AnimatePresence mode="wait">
                 {activeService === 'FLIGHTS' && (
                     <motion.form 
@@ -167,9 +167,9 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                         onSubmit={handleSearch} 
-                        className="flex flex-col gap-6"
+                        className="flex flex-col gap-4 md:gap-6"
                     >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-30">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 relative z-30">
                           <LocationAutocomplete 
                             label="Where from?"
                             value={flightParams.origin || ''}
@@ -183,7 +183,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                             placeholder="Dream Destination"
                           />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-20">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 relative z-20">
                           <ModernDatePicker 
                               label="When are you going?"
                               value={flightParams.departureDate || ''}
@@ -210,9 +210,9 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="flex flex-col gap-6"
+                        className="flex flex-col gap-4 md:gap-6"
                      >
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             <RoadmanInput 
                                 label="Destination" 
                                 placeholder="e.g. Paris, France" 
@@ -225,7 +225,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                                 onChange={(val) => setStayParams({...stayParams, checkIn: val})}
                             />
                          </div>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             <RoadmanInput 
                                 label="Guests" 
                                 type="number" 
@@ -244,8 +244,8 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                 )}
 
                 {activeService === 'CARS' && (
-                     <motion.div key="cars" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <motion.div key="cars" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             <LocationAutocomplete 
                                 label="Pickup Location"
                                 value={carParams.pickupLocation || ''}
@@ -258,7 +258,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                                 onChange={(val) => setCarParams({...carParams, pickupDate: val})}
                             />
                         </div>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                            <RoadmanInput 
                                 label="Car Type" 
                                 placeholder="SUV / Van / Sedan" 
@@ -282,9 +282,9 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="flex flex-col gap-6"
+                        className="flex flex-col gap-4 md:gap-6"
                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             <RoadmanInput 
                                 label="Location" 
                                 placeholder="Event venue, Club, or Address"
@@ -297,7 +297,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                                 onChange={(val) => setSecurityParams({...securityParams, securityDate: val})}
                             />
                         </div>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                            <div className="flex flex-col gap-1 w-full">
                                 <label className="text-sm font-semibold text-gray-300 ml-1">
                                 Service Type

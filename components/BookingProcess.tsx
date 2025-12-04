@@ -138,22 +138,22 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-700 pb-4">
-                <div>
+                <div className="w-full md:w-auto">
                     <h3 className="text-xl font-bold font-display text-white">
                         {isFlight(offer) ? 'Review Flight Details' : 'Review Booking'}
                     </h3>
-                    <p className="text-sm text-gray-400">Please check your details before payment.</p>
+                    <p className="text-sm text-gray-400">Please check your details.</p>
                 </div>
-                <div className="text-right bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                <div className="w-full md:w-auto text-left md:text-right bg-slate-900/50 p-3 rounded-xl border border-slate-700">
                     <p className="text-xs text-gray-500 mb-1">Total Price</p>
-                    <div className="text-2xl font-bold text-brand-400 font-mono">
-                        {getDisplayPrice(basePrice, baseCurrency)} 
+                    <div className="text-2xl font-bold text-brand-400 font-mono flex items-center justify-start md:justify-end gap-2">
+                        <span>{getDisplayPrice(basePrice, baseCurrency)}</span>
                         <select 
                             value={currency} 
                             onChange={(e) => setCurrency(e.target.value)}
-                            className="ml-2 bg-transparent text-sm text-white border-none focus:ring-0 cursor-pointer font-sans"
+                            className="bg-slate-800 text-sm text-white border border-slate-600 rounded px-1 py-0.5 focus:ring-0 cursor-pointer font-sans"
                         >
-                            {Object.keys(EXCHANGE_RATES).map(c => <option key={c} value={c} className="bg-slate-800 text-white">{c}</option>)}
+                            {Object.keys(EXCHANGE_RATES).map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                     {currency !== baseCurrency && (
@@ -186,7 +186,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                                         <div className="flex flex-col sm:flex-row gap-4 sm:items-start justify-between">
                                             {/* Flight Leg Info */}
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-1">
+                                                <div className="flex flex-wrap items-center gap-2 mb-1">
                                                     <span className="text-lg font-bold text-white">{formatTime(seg.departing_at)}</span>
                                                     <span className="text-gray-500">→</span>
                                                     <span className="text-lg font-bold text-white">{formatTime(seg.arriving_at)}</span>
@@ -194,7 +194,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                                                 <div className="text-sm text-gray-400 mb-2">
                                                     {formatDate(seg.departing_at)}
                                                 </div>
-                                                <div className="flex items-center gap-2 text-sm text-gray-300">
+                                                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-300">
                                                     <span className="font-bold text-white">{seg.origin.iata_code}</span>
                                                     <span className="text-xs text-gray-500">to</span>
                                                     <span className="font-bold text-white">{seg.destination.iata_code}</span>
@@ -214,13 +214,13 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
             )}
 
             {isStay(offer) && (
-                <div className="flex gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-                    <img src={offer.image} alt={offer.name} className="w-24 h-24 object-cover rounded-lg bg-slate-800" />
+                <div className="flex flex-col sm:flex-row gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                    <img src={offer.image} alt={offer.name} className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg bg-slate-800" />
                     <div>
                         <h4 className="font-bold text-white text-lg">{offer.name}</h4>
                         <p className="text-sm text-gray-400 mb-2">{offer.location}</p>
-                        <div className="flex gap-2">
-                            {offer.amenities.slice(0, 2).map(am => (
+                        <div className="flex flex-wrap gap-2">
+                            {offer.amenities.slice(0, 3).map(am => (
                                 <span key={am} className="text-[10px] bg-slate-700 px-2 py-0.5 rounded text-gray-300">{am}</span>
                             ))}
                         </div>
@@ -229,8 +229,8 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
             )}
             
             {(isCar(offer) || isSecurity(offer) || isExperience(offer)) && (
-                 <div className="flex gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-                    <img src={offer.image} alt={'title' in offer ? offer.title : offer.model} className="w-24 h-24 object-cover rounded-lg bg-slate-800" />
+                 <div className="flex flex-col sm:flex-row gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                    <img src={offer.image} alt={'title' in offer ? offer.title : offer.model} className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg bg-slate-800" />
                     <div>
                         <h4 className="font-bold text-white text-lg">{'title' in offer ? offer.title : `${offer.brand} ${offer.model}`}</h4>
                         <p className="text-sm text-gray-400">
@@ -258,7 +258,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
         animate={{ opacity: 1, y: 0 }}
         layoutId={offer.id}
       >
-        <RoadmanCard className="mb-8 !p-8 border-t-4 border-t-brand-500">
+        <RoadmanCard className="mb-8 !p-4 md:!p-8 border-t-4 border-t-brand-500">
           <div className="mb-8">
             {renderSummary()}
           </div>
@@ -267,7 +267,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
             
             {/* CAR SPECIFIC: Ride Configuration */}
             {isCar(offer) && (
-                <div className="bg-slate-700/30 p-6 rounded-xl border border-slate-600 mb-8">
+                <div className="bg-slate-700/30 p-4 md:p-6 rounded-xl border border-slate-600 mb-8">
                     <h4 className="text-sm uppercase tracking-wider text-brand-400 font-bold mb-4 flex items-center gap-2">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
                         Trip Itinerary
@@ -323,7 +323,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
 
             <div>
                 <h4 className="text-sm uppercase tracking-wider text-gray-500 font-semibold mb-4 border-b border-slate-700 pb-2">Customer Details</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <RoadmanInput 
                     label="First Name" 
                     required
@@ -341,7 +341,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <RoadmanInput 
                 label="Email Address" 
                 type="email" 
@@ -360,7 +360,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
               />
             </div>
 
-            <div className="bg-slate-900/40 p-6 rounded-xl border border-slate-700 mt-8">
+            <div className="bg-slate-900/40 p-4 md:p-6 rounded-xl border border-slate-700 mt-8">
                 <h4 className="text-sm uppercase tracking-wider text-gray-500 font-semibold mb-4">Payment Method</h4>
                 <RoadmanInput 
                 label="Card Number" 

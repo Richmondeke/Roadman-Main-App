@@ -27,7 +27,7 @@ export const ExperiencesView: React.FC<ExperiencesViewProps> = ({ onSelect, onBa
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-8">
        {/* Header */}
-       <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-8 gap-4">
+       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <button 
                 onClick={onBack}
@@ -36,11 +36,11 @@ export const ExperiencesView: React.FC<ExperiencesViewProps> = ({ onSelect, onBa
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                 Back to Home
             </button>
-            <h2 className="font-display text-4xl font-bold text-white">Explore Collections</h2>
-            <p className="text-gray-400 mt-2">Curated adventures for the discerning traveler.</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white">Explore Collections</h2>
+            <p className="text-gray-400 mt-2 text-sm md:text-base">Curated adventures for the discerning traveler.</p>
           </div>
 
-          <div className="bg-slate-800 p-1 rounded-lg flex border border-slate-700">
+          <div className="bg-slate-800 p-1 rounded-lg flex border border-slate-700 self-start md:self-auto">
              <button 
                 onClick={() => setViewMode('GRID')}
                 className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${viewMode === 'GRID' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
@@ -119,46 +119,52 @@ export const ExperiencesView: React.FC<ExperiencesViewProps> = ({ onSelect, onBa
             >
                 <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
                     <div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
-                        <h3 className="text-2xl font-display font-bold text-white">{currentMonth}</h3>
+                        <h3 className="text-xl md:text-2xl font-display font-bold text-white">{currentMonth}</h3>
                         <div className="flex gap-2">
                              <button className="p-2 hover:bg-slate-700 rounded-full text-gray-400 hover:text-white"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
                              <button className="p-2 hover:bg-slate-700 rounded-full text-gray-400 hover:text-white"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
                         </div>
                     </div>
                     
-                    {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 border-b border-slate-700 bg-slate-900">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                            <div key={d} className="p-4 text-center text-sm font-bold text-gray-500 uppercase tracking-wider">{d}</div>
-                        ))}
-                    </div>
-                    <div className="grid grid-cols-7 auto-rows-fr bg-slate-800">
-                        {/* Empty padding for start of month (Friday start for May 2026) */}
-                        {[...Array(5)].map((_, i) => <div key={`pad-${i}`} className="min-h-[140px] border border-slate-700/50 bg-slate-900/30"></div>)}
-                        
-                        {calendarDays.map(day => {
-                            const events = getEventsForDay(day);
-                            return (
-                                <div key={day} className="min-h-[140px] border border-slate-700/50 p-3 relative group hover:bg-slate-700/30 transition-colors">
-                                    <span className={`text-sm font-medium ${events.length > 0 ? 'text-white' : 'text-gray-500'}`}>{day}</span>
-                                    
-                                    <div className="mt-2 space-y-1">
-                                        {events.map(ev => (
-                                            <div 
-                                                key={ev.id}
-                                                onClick={() => onSelect(ev)}
-                                                className="text-xs p-1.5 rounded bg-brand-900/60 border border-brand-500/30 text-brand-100 cursor-pointer hover:bg-brand-600 hover:border-brand-400 hover:text-white transition-all shadow-[0_0_10px_rgba(14,165,233,0.1)] truncate"
-                                            >
-                                                {ev.title}
+                    {/* Calendar Grid Wrapper for Scroll */}
+                    <div className="overflow-x-auto">
+                        <div className="min-w-[800px]">
+                            {/* Headings */}
+                            <div className="grid grid-cols-7 border-b border-slate-700 bg-slate-900">
+                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                                    <div key={d} className="p-4 text-center text-sm font-bold text-gray-500 uppercase tracking-wider">{d}</div>
+                                ))}
+                            </div>
+                            {/* Days */}
+                            <div className="grid grid-cols-7 auto-rows-fr bg-slate-800">
+                                {/* Empty padding for start of month (Friday start for May 2026) */}
+                                {[...Array(5)].map((_, i) => <div key={`pad-${i}`} className="min-h-[140px] border border-slate-700/50 bg-slate-900/30"></div>)}
+                                
+                                {calendarDays.map(day => {
+                                    const events = getEventsForDay(day);
+                                    return (
+                                        <div key={day} className="min-h-[140px] border border-slate-700/50 p-3 relative group hover:bg-slate-700/30 transition-colors">
+                                            <span className={`text-sm font-medium ${events.length > 0 ? 'text-white' : 'text-gray-500'}`}>{day}</span>
+                                            
+                                            <div className="mt-2 space-y-1">
+                                                {events.map(ev => (
+                                                    <div 
+                                                        key={ev.id}
+                                                        onClick={() => onSelect(ev)}
+                                                        className="text-xs p-1.5 rounded bg-brand-900/60 border border-brand-500/30 text-brand-100 cursor-pointer hover:bg-brand-600 hover:border-brand-400 hover:text-white transition-all shadow-[0_0_10px_rgba(14,165,233,0.1)] truncate"
+                                                    >
+                                                        {ev.title}
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <p className="text-center text-gray-500 mt-6 text-sm">Showing events for May 2026 only in this demo view.</p>
+                <p className="text-center text-gray-500 mt-6 text-sm">Showing events for May 2026 only in this demo view. Scroll horizontally to see full week.</p>
             </motion.div>
          )}
        </AnimatePresence>
