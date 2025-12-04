@@ -232,12 +232,22 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                                 value={stayParams.guests}
                                 onChange={e => setStayParams({...stayParams, guests: parseInt(e.target.value)})}
                             />
-                            <RoadmanInput 
-                                label="Room Type" 
-                                placeholder="Family Suite"
-                                value={stayParams.roomType}
-                                onChange={e => setStayParams({...stayParams, roomType: e.target.value})}
-                            />
+                            <div className="flex flex-col gap-1 w-full">
+                                <label className="text-sm font-semibold text-gray-300 ml-1">
+                                Room Type
+                                </label>
+                                <select 
+                                    className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all shadow-sm"
+                                    value={stayParams.roomType}
+                                    onChange={e => setStayParams({...stayParams, roomType: e.target.value})}
+                                >
+                                    <option>Standard Room</option>
+                                    <option>Double Room</option>
+                                    <option>Executive Suite</option>
+                                    <option>Family Suite</option>
+                                    <option>Penthouse</option>
+                                </select>
+                           </div>
                          </div>
                          <RoadmanButton onClick={() => handleSearch()} variant="secondary" className="w-full mt-2">Find Stays</RoadmanButton>
                      </motion.div>
@@ -259,12 +269,24 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                             />
                         </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                           <RoadmanInput 
-                                label="Car Type" 
-                                placeholder="SUV / Van / Sedan" 
-                                value={carParams.carType}
-                                onChange={e => setCarParams({...carParams, carType: e.target.value})}
-                           />
+                           <div className="flex flex-col gap-1 w-full">
+                                <label className="text-sm font-semibold text-gray-300 ml-1">
+                                Car Type
+                                </label>
+                                <select 
+                                    className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all shadow-sm"
+                                    value={carParams.carType}
+                                    onChange={e => setCarParams({...carParams, carType: e.target.value})}
+                                >
+                                    <option>Economy</option>
+                                    <option>Sedan</option>
+                                    <option>SUV</option>
+                                    <option>Luxury</option>
+                                    <option>Van</option>
+                                    <option>Convertible</option>
+                                    <option>Electric</option>
+                                </select>
+                           </div>
                            <RoadmanInput 
                                 label="Duration (Days)" 
                                 type="number" 
@@ -342,3 +364,4 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
     </div>
   );
 };
+        
