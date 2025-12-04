@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { SearchResultItem, Order, FlightOffer, StayOffer, CarOffer, SecurityOffer, ExperienceOffer } from '../types';
+import { SearchResultItem, Order, FlightOffer, StayOffer, CarOffer, SecurityOffer, ExperienceOffer, User } from '../types';
 import { RoadmanButton, RoadmanInput, RoadmanCard } from './TronComponents';
 import { ModernDatePicker } from './ModernDatePicker';
 import { createOrder } from '../services/duffelService';
 
 interface BookingProcessProps {
   offer: SearchResultItem;
+  user: User | null;
   onSuccess: (order: Order) => void;
   onCancel: () => void;
 }
@@ -21,7 +22,7 @@ const EXCHANGE_RATES: Record<string, number> = {
     'NGN': 1650.0
 };
 
-export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess, onCancel }) => {
+export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, user, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [currency, setCurrency] = useState(
       'total_currency' in offer ? (offer as any).total_currency : 
@@ -29,14 +30,26 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
   );
 
   const [formData, setFormData] = useState({
-    givenName: '',
-    familyName: '',
-    email: '',
+    givenName: user?.firstName || '',
+    familyName: user?.lastName || '',
+    email: user?.email || '',
     phone: '',
     cardNumber: '',
     expiry: '',
     cvc: ''
   });
+
+  // Update form if user prop changes (e.g., late login)
+  useEffect(() => {
+      if (user) {
+          setFormData(prev => ({
+              ...prev,
+              givenName: user.firstName,
+              familyName: user.lastName,
+              email: user.email
+          }));
+      }
+  }, [user]);
 
   // --- Type Guards ---
   const isFlight = (item: SearchResultItem): item is FlightOffer => 'slices' in item;
@@ -516,6 +529,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                     placeholder="e.g. John"
                     value={formData.givenName}
                     onChange={e => setFormData({...formData, givenName: e.target.value})}
+                    readOnly={!!user} // Optional: make read-only if logged in
                 />
                 <RoadmanInput 
                     label="Last Name" 
@@ -523,6 +537,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                     placeholder="e.g. Doe"
                     value={formData.familyName}
                     onChange={e => setFormData({...formData, familyName: e.target.value})}
+                    readOnly={!!user}
                 />
                 </div>
             </div>
@@ -535,6 +550,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                 placeholder="john@example.com"
                 value={formData.email}
                 onChange={e => setFormData({...formData, email: e.target.value})}
+                readOnly={!!user}
               />
               <RoadmanInput 
                 label="Phone Number" 

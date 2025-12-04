@@ -78,6 +78,19 @@ export interface ExperienceOffer {
   included: string[];
 }
 
+export interface DestinationDeal {
+  id: string;
+  origin: string;
+  destination: string; // IATA
+  destinationCity: string;
+  destinationCountry: string;
+  price: string;
+  currency: string;
+  imageUrl: string;
+  departureDate: string;
+  airline: string;
+}
+
 // Union type for all possible results
 export type SearchResultItem = FlightOffer | StayOffer | CarOffer | SecurityOffer | ExperienceOffer;
 
@@ -86,6 +99,7 @@ export interface SearchParams {
   destination?: string;
   departureDate?: string;
   passengers?: number;
+  cabinClass?: 'economy' | 'premium_economy' | 'business' | 'first';
   // Stays
   checkIn?: string;
   guests?: number;
@@ -125,11 +139,24 @@ export interface Order {
   documents?: Array<{ unique_identifier: string }>;
   serviceType: ServiceType; // Track what kind of order this is
   details?: any; // Store snapshot of the offer
+  rideDetails?: {
+    pickupLocation: string;
+    pickupTime: string;
+    stops: string[];
+  };
+  // Admin View Fields
+  customerName?: string; 
+  customerEmail?: string;
+  amount?: string; 
+  currency?: string;
+  date?: string; 
 }
 
-export type ViewState = 'HOME' | 'SEARCHING' | 'RESULTS' | 'BOOKING' | 'CONFIRMATION' | 'TRIPS' | 'EXPERIENCES' | 'EXPERIENCE_DETAIL';
+export type ViewState = 'HOME' | 'SEARCHING' | 'RESULTS' | 'BOOKING' | 'CONFIRMATION' | 'TRIPS' | 'EXPERIENCES' | 'EXPERIENCE_DETAIL' | 'ADMIN';
 
 export interface User {
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
 }

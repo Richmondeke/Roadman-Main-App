@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HeroSearch } from './components/HeroSearch';
 import { ResultsList } from './components/ResultsList';
@@ -7,14 +7,22 @@ import { ServiceResults } from './components/ServiceResults';
 import { BookingProcess } from './components/BookingProcess';
 import { ExperiencesView } from './components/ExperiencesView';
 import { ExperienceDetail } from './components/ExperienceDetail';
+import { AuthModal } from './components/AuthModal'; // Import Auth Modal
+import { AdminDashboard } from './components/AdminDashboard'; // Import Admin Dashboard
+import { CheapestFlightsWidget } from './components/CheapestFlightsWidget'; // Import Widget
 import { RoadmanButton, RoadmanCard } from './components/TronComponents';
 import { searchFlights, searchStays } from './services/duffelService';
+import { getSession, logout } from './services/authService'; // Import Auth Services
 import { MOCK_EXPERIENCES } from './data/mockExperiences';
-import { FlightOffer, Order, SearchParams, ViewState, ServiceType, StayOffer, CarOffer, SecurityOffer, SearchResultItem, ExperienceOffer } from './types';
+import { FlightOffer, Order, SearchParams, ViewState, ServiceType, StayOffer, CarOffer, SecurityOffer, SearchResultItem, ExperienceOffer, User, DestinationDeal } from './types';
 
 export default function App() {
   const [view, setView] = useState<ViewState>('HOME');
   const [currentService, setCurrentService] = useState<ServiceType>('FLIGHTS');
+  
+  // User Authentication State
+  const [user, setUser] = useState<User | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   // State for different result types
   const [flightOffers, setFlightOffers] = useState<FlightOffer[]>([]);
@@ -30,6 +38,14 @@ export default function App() {
   const [activeTripTab, setActiveTripTab] = useState<'ALL' | ServiceType>('ALL');
 
   const [isSearching, setIsSearching] = useState(false);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const sessionUser = getSession();
+    if (sessionUser) {
+        setUser(sessionUser);
+    }
+  }, []);
 
   const handleSearch = async (type: ServiceType, params: SearchParams) => {
     setView('SEARCHING');
@@ -110,7 +126,12 @@ export default function App() {
 
   const handleSelectOffer = (offer: any) => {
     setSelectedOffer(offer);
-    setView('BOOKING');
+    // GATE: Check Authentication
+    if (user) {
+        setView('BOOKING');
+    } else {
+        setShowAuthModal(true);
+    }
   };
 
   const handleSelectExperience = (experience: ExperienceOffer) => {
@@ -121,7 +142,36 @@ export default function App() {
   const handleBookExperience = (experience: ExperienceOffer) => {
       setSelectedOffer(experience);
       setCurrentService('EXPERIENCE');
-      setView('BOOKING');
+      // GATE: Check Authentication
+      if (user) {
+        setView('BOOKING');
+      } else {
+        setShowAuthModal(true);
+      }
+  };
+
+  const handleSelectDeal = (deal: DestinationDeal) => {
+     handleSearch('FLIGHTS', {
+         origin: deal.origin,
+         destination: deal.destination,
+         departureDate: deal.departureDate,
+         passengers: 1
+     });
+  };
+
+  const handleAuthSuccess = (loggedInUser: User) => {
+      setUser(loggedInUser);
+      setShowAuthModal(false);
+      // Automatically proceed to booking after login if an offer was selected
+      if (selectedOffer) {
+          setView('BOOKING');
+      }
+  };
+
+  const handleLogout = () => {
+      logout();
+      setUser(null);
+      setView('HOME');
   };
 
   const handleBookingSuccess = (order: Order) => {
@@ -165,6 +215,17 @@ export default function App() {
   return (
     <div className="min-h-screen font-sans bg-slate-900 text-gray-100 selection:bg-brand-500/30">
       
+      {/* Auth Modal */}
+      <AnimatePresence>
+        {showAuthModal && (
+            <AuthModal 
+                isOpen={showAuthModal} 
+                onClose={() => setShowAuthModal(false)}
+                onSuccess={handleAuthSuccess}
+            />
+        )}
+      </AnimatePresence>
+
       {/* Navbar */}
       <nav className="sticky top-0 z-50 flex justify-between items-center px-6 py-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setView('HOME')}>
@@ -178,7 +239,7 @@ export default function App() {
         </div>
         
         <div className="flex items-center gap-4">
-           {orders.length > 0 && (
+           {orders.length > 0 && view !== 'ADMIN' && (
              <button 
                 onClick={() => setView('TRIPS')}
                 className={`text-sm font-semibold transition-colors ${view === 'TRIPS' ? 'text-brand-400' : 'text-gray-400 hover:text-white'}`}
@@ -187,9 +248,37 @@ export default function App() {
              </button>
            )}
            
-           <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden border border-slate-600">
-              <img src="https://ui-avatars.com/api/?name=Traveler&background=0ea5e9&color=fff" alt="User" />
-           </div>
+           {/* Admin Button */}
+           <button 
+                onClick={() => setView('ADMIN')}
+                className={`text-sm font-semibold transition-colors hidden sm:block ${view === 'ADMIN' ? 'text-brand-400' : 'text-gray-400 hover:text-white'}`}
+            >
+                View as Admin
+            </button>
+           
+           {user ? (
+               <div className="flex items-center gap-3">
+                   <div className="text-right hidden sm:block">
+                       <p className="text-xs text-gray-400">Welcome,</p>
+                       <p className="text-sm font-bold text-white">{user.firstName}</p>
+                   </div>
+                   <div className="relative group/profile">
+                        <div className="w-8 h-8 rounded-full bg-brand-700 overflow-hidden border border-brand-500 cursor-pointer">
+                            <img src={`https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=0ea5e9&color=fff`} alt="User" />
+                        </div>
+                        <div className="absolute right-0 mt-2 w-32 bg-slate-800 border border-slate-600 rounded-xl shadow-xl overflow-hidden hidden group-hover/profile:block">
+                            <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700">Logout</button>
+                        </div>
+                   </div>
+               </div>
+           ) : (
+               <button 
+                onClick={() => setShowAuthModal(true)}
+                className="text-sm font-bold text-brand-400 hover:text-white transition-colors border border-brand-900/50 hover:border-brand-500 rounded-full px-4 py-1.5"
+               >
+                   Sign In
+               </button>
+           )}
         </div>
       </nav>
 
@@ -197,10 +286,20 @@ export default function App() {
       <main className="relative z-10">
         <AnimatePresence mode="wait">
           
+          {/* ADMIN VIEW */}
+          {view === 'ADMIN' && (
+              <motion.div key="admin" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <AdminDashboard onBack={() => setView('HOME')} />
+              </motion.div>
+          )}
+
           {/* HOME VIEW */}
           {view === 'HOME' && (
             <motion.div key="home" exit={{ opacity: 0 }}>
               <HeroSearch onSearch={handleSearch} />
+
+              {/* Cheapest Flights Widget */}
+              <CheapestFlightsWidget onSelectDeal={handleSelectDeal} />
               
               {/* Marketing Section */}
               <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -301,7 +400,7 @@ export default function App() {
               ) : (
                 <ServiceResults 
                     type={currentService} 
-                    results={otherOffers} 
+                    results={otherOffers as (StayOffer | CarOffer | SecurityOffer)[]} 
                     onSelect={handleSelectOffer} 
                     onBack={() => setView('HOME')} 
                 />
@@ -330,7 +429,12 @@ export default function App() {
           {/* BOOKING VIEW */}
           {view === 'BOOKING' && selectedOffer && (
             <motion.div key="booking" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <BookingProcess offer={selectedOffer} onSuccess={handleBookingSuccess} onCancel={() => setView('RESULTS')} />
+              <BookingProcess 
+                  offer={selectedOffer} 
+                  user={user}
+                  onSuccess={handleBookingSuccess} 
+                  onCancel={() => setView('RESULTS')} 
+              />
             </motion.div>
           )}
 

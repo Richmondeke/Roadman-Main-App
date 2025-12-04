@@ -67,7 +67,7 @@ serve(async (req) => {
     // ENDPOINT: SEARCH FLIGHTS
     // ------------------------------------------------------------------
     if (isSearch && req.method === 'POST') {
-      const { origin, destination, departureDate, passengers } = await req.json();
+      const { origin, destination, departureDate, passengers, cabinClass } = await req.json();
 
       // Basic Duffel Offer Request Body
       // Explicitly construct passengers array using Array.from to avoid reference issues
@@ -84,7 +84,7 @@ serve(async (req) => {
             },
           ],
           passengers: passengerList,
-          cabin_class: "economy",
+          cabin_class: cabinClass || "economy",
         },
       };
 

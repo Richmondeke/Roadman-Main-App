@@ -31,7 +31,8 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
     origin: 'JFK',
     destination: 'LHR',
     departureDate: getFutureDate(14), // Default to 2 weeks from now (Safe Zone)
-    passengers: 1
+    passengers: 1,
+    cabinClass: 'economy'
   });
 
   // State for Stays Inputs
@@ -189,14 +190,29 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
                               value={flightParams.departureDate || ''}
                               onChange={(val) => setFlightParams({...flightParams, departureDate: val})}
                           />
-                          <RoadmanInput 
-                              type="number" 
-                              label="Travelers" 
-                              min={1} 
-                              max={9}
-                              value={flightParams.passengers}
-                              onChange={e => setFlightParams({...flightParams, passengers: parseInt(e.target.value)})}
-                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <RoadmanInput 
+                                type="number" 
+                                label="Travelers" 
+                                min={1} 
+                                max={9}
+                                value={flightParams.passengers}
+                                onChange={e => setFlightParams({...flightParams, passengers: parseInt(e.target.value)})}
+                            />
+                            <div className="flex flex-col gap-1 w-full">
+                                <label className="text-sm font-semibold text-gray-300 ml-1">Class</label>
+                                <select 
+                                    className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all shadow-sm cursor-pointer appearance-none"
+                                    value={flightParams.cabinClass}
+                                    onChange={e => setFlightParams({...flightParams, cabinClass: e.target.value as any})}
+                                >
+                                    <option value="economy">Economy</option>
+                                    <option value="premium_economy">Premium Econ</option>
+                                    <option value="business">Business</option>
+                                    <option value="first">First Class</option>
+                                </select>
+                            </div>
+                          </div>
                         </div>
                         <RoadmanButton type="submit" className="w-full mt-4 text-lg">
                           Search Flights
@@ -364,4 +380,3 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
     </div>
   );
 };
-        

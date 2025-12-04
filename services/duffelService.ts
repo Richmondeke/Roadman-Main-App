@@ -1,5 +1,5 @@
 
-import { FlightOffer, SearchParams, BookingDetails, Order, StayOffer } from '../types';
+import { FlightOffer, SearchParams, BookingDetails, Order, StayOffer, DestinationDeal } from '../types';
 import { AIRPORTS, Airport } from '../data/airports';
 
 // Configuration from provided credentials
@@ -173,7 +173,8 @@ export const searchFlights = async (params: SearchParams): Promise<FlightOffer[]
   const sanitizedParams = {
       ...params,
       origin: params.origin?.trim().toUpperCase(),
-      destination: params.destination?.trim().toUpperCase()
+      destination: params.destination?.trim().toUpperCase(),
+      cabinClass: params.cabinClass || 'economy'
   };
 
   console.log("✈️ Initiating Flight Search via Edge Function:", `${API_URL}/search`, sanitizedParams);
@@ -326,4 +327,157 @@ export const createOrder = async (details: BookingDetails): Promise<Order> => {
       serviceType: 'FLIGHTS'
     };
   }
+};
+
+export const getTrendingDestinations = async (origin: string): Promise<DestinationDeal[]> => {
+    // We fetch real data by querying a set of popular hubs relative to the origin.
+    const candidates = [
+        { code: 'LHR', img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80' },
+        { code: 'CDG', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80' },
+        { code: 'DXB', img: 'https://images.unsplash.com/photo-1512453979798-5ea932a23644?auto=format&fit=crop&w=600&q=80' },
+        { code: 'JFK', img: 'https://images.unsplash.com/photo-1496442226666-8d4a0e62e6e9?auto=format&fit=crop&w=600&q=80' },
+        { code: 'HND', img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=600&q=80' },
+        { code: 'SYD', img: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=600&q=80' }
+    ].filter(c => c.code !== origin.toUpperCase()).slice(0, 5);
+    
+    // Pick a date ~3 weeks from now to ensure availability
+    const date = new Date();
+    date.setDate(date.getDate() + 21);
+    const departureDate = date.toISOString().split('T')[0];
+    
+    const promises = candidates.map(async (target) => {
+        try {
+            const offers = await searchFlights({
+                origin,
+                destination: target.code,
+                departureDate,
+                passengers: 1,
+                cabinClass: 'economy'
+            });
+            
+            if (!offers || offers.length === 0) return null;
+
+            // Sort by price (cheapest first)
+            const sorted = offers.sort((a, b) => parseFloat(a.total_amount) - parseFloat(b.total_amount));
+            const best = sorted[0];
+
+            // Resolve City/Country
+            const info = AIRPORTS.find(a => a.code === target.code);
+
+            return {
+                id: `deal_${target.code}_${Date.now()}`,
+                origin,
+                destination: target.code,
+                destinationCity: info?.city || target.code,
+                destinationCountry: info?.country || '',
+                price: best.total_amount,
+                currency: best.total_currency,
+                imageUrl: target.img,
+                departureDate,
+                airline: best.owner.name
+            } as DestinationDeal;
+
+        } catch (e) {
+            console.warn(`Could not fetch deal for ${target.code}`, e);
+            return null;
+        }
+    });
+    
+    const results = await Promise.all(promises);
+    return results.filter((r): r is DestinationDeal => r !== null);
+};
+
+// Admin Mock Data Generator
+export const getAdminDashboardData = async (): Promise<{ orders: Order[], stats: any }> => {
+    // Simulate network delay
+    await new Promise(r => setTimeout(r, 800));
+
+    const mockOrders: Order[] = [
+        {
+            id: 'ord_1001',
+            booking_reference: 'NEON-8821',
+            status: 'confirmed',
+            serviceType: 'FLIGHTS',
+            customerName: 'Alice Johnson',
+            customerEmail: 'alice@example.com',
+            amount: '450.00',
+            currency: 'USD',
+            date: '2026-05-10T10:30:00Z'
+        },
+        {
+            id: 'ord_1002',
+            booking_reference: 'NEON-3392',
+            status: 'pending',
+            serviceType: 'STAYS',
+            customerName: 'Bob Smith',
+            customerEmail: 'bob.smith@test.com',
+            amount: '1250.00',
+            currency: 'USD',
+            date: '2026-05-11T09:15:00Z'
+        },
+        {
+            id: 'ord_1003',
+            booking_reference: 'NEON-9912',
+            status: 'confirmed',
+            serviceType: 'FLIGHTS',
+            customerName: 'Charlie Davis',
+            customerEmail: 'charlie@corp.com',
+            amount: '890.50',
+            currency: 'USD',
+            date: '2026-05-12T14:20:00Z'
+        },
+        {
+            id: 'ord_1004',
+            booking_reference: 'NEON-1102',
+            status: 'cancelled',
+            serviceType: 'CARS',
+            customerName: 'Diana Prince',
+            customerEmail: 'diana@amazon.com',
+            amount: '300.00',
+            currency: 'USD',
+            date: '2026-05-12T16:00:00Z'
+        },
+        {
+            id: 'ord_1005',
+            booking_reference: 'NEON-7734',
+            status: 'confirmed',
+            serviceType: 'EXPERIENCE',
+            customerName: 'Evan Wright',
+            customerEmail: 'evan@travel.com',
+            amount: '4500.00',
+            currency: 'USD',
+            date: '2026-05-13T11:45:00Z'
+        },
+        {
+            id: 'ord_1006',
+            booking_reference: 'NEON-5521',
+            status: 'confirmed',
+            serviceType: 'SECURITY',
+            customerName: 'Fiona Gallagher',
+            customerEmail: 'fiona@vip.com',
+            amount: '2200.00',
+            currency: 'USD',
+            date: '2026-05-14T08:00:00Z'
+        },
+        {
+            id: 'ord_1007',
+            booking_reference: 'NEON-4411',
+            status: 'pending',
+            serviceType: 'FLIGHTS',
+            customerName: 'George Miller',
+            customerEmail: 'george@tech.com',
+            amount: '320.00',
+            currency: 'USD',
+            date: '2026-05-14T13:30:00Z'
+        }
+    ];
+
+    const stats = {
+        totalRevenue: 9910.50,
+        activeBookings: 142,
+        pendingApprovals: 5,
+        occupancyRate: 85
+    };
+
+    return { orders: mockOrders, stats };
 };
