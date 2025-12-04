@@ -25,24 +25,6 @@ export const MOCK_EXPERIENCES: ExperienceOffer[] = [
       included: ["5-Star Accommodation", "VVIP Concert Access", "Private Yacht", "Security Detail", "Stylist Session"]
   },
   {
-      id: "exp_met_2026",
-      title: "Met Gala 2026",
-      location: "New York, USA",
-      image: "https://images.unsplash.com/photo-1545167622-3a6ac15604e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-      price: "15,000",
-      currency: "USD",
-      date: "2026-05-04",
-      duration_days: 3,
-      tag: "Exclusive",
-      description: "Secure your place at the most exclusive fashion event of the year. This package includes VIP red carpet access, a 5-star stay at The Pierre, and a private stylist consultation.",
-      itinerary: [
-          { day: 1, title: "Arrival & Fittings", description: "Private car transfer to The Pierre. Afternoon fitting with celebrity stylist and final alterations." },
-          { day: 2, title: "The Main Event", description: "Red carpet arrival at the Metropolitan Museum of Art. Dinner and gala access. Official after-party entry." },
-          { day: 3, title: "Decompression Spa", description: "Morning brunch followed by a full-service spa treatment before departure." }
-      ],
-      included: ["Gala Ticket", "2 Nights at The Pierre", "Stylist", "Private Transport", "Security Detail"]
-  },
-  {
       id: "exp_f1_monaco",
       title: "F1 Monaco Grand Prix",
       location: "Monte Carlo, Monaco",
@@ -122,3 +104,4 @@ export const MOCK_EXPERIENCES: ExperienceOffer[] = [
       included: ["5-Star Hotel", "Private Driver", "Translator", "All Entry Fees"]
   }
 ];
+    

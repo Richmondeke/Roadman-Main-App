@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SearchResultItem, Order, FlightOffer, StayOffer, CarOffer, SecurityOffer, ExperienceOffer } from '../types';
 import { RoadmanButton, RoadmanInput, RoadmanCard } from './TronComponents';
+import { ModernDatePicker } from './ModernDatePicker';
 import { createOrder } from '../services/duffelService';
 
 interface BookingProcessProps {
@@ -37,21 +38,51 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
     cvc: ''
   });
 
-  // State for Car Ride Itinerary
-  const [rideConfig, setRideConfig] = useState({
-    pickupLocation: '',
-    pickupTime: '10:00',
-    stops: [''] // Start with one empty destination field
-  });
-
-  // Type Guards
+  // --- Type Guards ---
   const isFlight = (item: SearchResultItem): item is FlightOffer => 'slices' in item;
   const isStay = (item: SearchResultItem): item is StayOffer => 'amenities' in item;
   const isCar = (item: SearchResultItem): item is CarOffer => 'brand' in item;
   const isSecurity = (item: SearchResultItem): item is SecurityOffer => 'certification' in item;
   const isExperience = (item: SearchResultItem): item is ExperienceOffer => 'itinerary' in item;
 
-  // Handlers for Ride Configuration
+  // --- State for Car Ride Itinerary ---
+  const [rideConfig, setRideConfig] = useState({
+    pickupLocation: '',
+    pickupTime: '10:00',
+    stops: ['']
+  });
+
+  // --- State for Stay Dates ---
+  // Default to tomorrow + 3 nights for demo purposes
+  const getTomorrow = () => {
+    const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0];
+  };
+  const getFourDaysFromNow = () => {
+    const d = new Date(); d.setDate(d.getDate() + 4); return d.toISOString().split('T')[0];
+  };
+
+  const [stayDates, setStayDates] = useState({
+    checkIn: getTomorrow(),
+    checkOut: getFourDaysFromNow()
+  });
+
+  // --- Calculations for Stays ---
+  const calculateNights = () => {
+    const start = new Date(stayDates.checkIn);
+    const end = new Date(stayDates.checkOut);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    return diffDays > 0 ? diffDays : 1; // Minimum 1 night
+  };
+
+  const getStayTotal = () => {
+    if (!isStay(offer)) return '0';
+    const nights = calculateNights();
+    const pricePerNight = parseFloat(offer.price_per_night);
+    return (pricePerNight * nights).toFixed(2);
+  };
+
+  // --- Handlers for Ride Configuration ---
   const addStop = () => {
     setRideConfig(prev => ({ ...prev, stops: [...prev.stops, ''] }));
   };
@@ -66,7 +97,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
     setRideConfig(prev => ({ ...prev, stops: newStops }));
   };
 
-  // Helpers
+  // --- Helpers ---
   const formatTime = (iso: string) => new Date(iso).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   const formatDate = (iso: string) => new Date(iso).toLocaleDateString([], {weekday: 'short', month: 'short', day: 'numeric'});
   
@@ -126,11 +157,13 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
   };
 
   const renderSummary = () => {
-    const basePrice = isFlight(offer) ? offer.total_amount :
-                      isStay(offer) ? offer.price_per_night :
-                      isCar(offer) ? offer.price_per_day :
-                      isSecurity(offer) ? offer.hourly_rate :
-                      isExperience(offer) ? offer.price : '0';
+    // Dynamic Price Logic
+    let basePrice = '0';
+    if (isFlight(offer)) basePrice = offer.total_amount;
+    else if (isStay(offer)) basePrice = getStayTotal(); // Use calculated total
+    else if (isCar(offer)) basePrice = offer.price_per_day;
+    else if (isSecurity(offer)) basePrice = offer.hourly_rate;
+    else if (isExperience(offer)) basePrice = offer.price;
 
     const baseCurrency = isFlight(offer) ? offer.total_currency : 
                         (offer as any).currency || 'USD';
@@ -164,6 +197,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                 </div>
             </div>
 
+            {/* --- FLIGHT SUMMARY --- */}
             {isFlight(offer) && (
                 <div className="space-y-6">
                     {offer.slices.map((slice, sIdx) => (
@@ -180,11 +214,8 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                             <div className="relative pl-4 space-y-8 border-l border-slate-700 ml-2">
                                 {slice.segments.map((seg, i) => (
                                     <div key={i} className="relative">
-                                        {/* Dot */}
                                         <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-brand-500 ring-4 ring-slate-900"></div>
-                                        
                                         <div className="flex flex-col sm:flex-row gap-4 sm:items-start justify-between">
-                                            {/* Flight Leg Info */}
                                             <div className="flex-1">
                                                 <div className="flex flex-wrap items-center gap-2 mb-1">
                                                     <span className="text-lg font-bold text-white">{formatTime(seg.departing_at)}</span>
@@ -213,21 +244,54 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                 </div>
             )}
 
+            {/* --- STAY SUMMARY --- */}
             {isStay(offer) && (
-                <div className="flex flex-col sm:flex-row gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-                    <img src={offer.image} alt={offer.name} className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg bg-slate-800" />
-                    <div className="flex-1">
-                        <h4 className="font-bold text-white text-lg break-words">{offer.name}</h4>
-                        <p className="text-sm text-gray-400 mb-2">{offer.location}</p>
-                        <div className="flex flex-wrap gap-2">
-                            {offer.amenities.slice(0, 3).map(am => (
-                                <span key={am} className="text-[10px] bg-slate-700 px-2 py-0.5 rounded text-gray-300">{am}</span>
-                            ))}
+                <div className="flex flex-col gap-6 bg-slate-900/50 p-4 md:p-6 rounded-xl border border-slate-700">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <img src={offer.image} alt={offer.name} className="w-full sm:w-32 h-48 sm:h-32 object-cover rounded-lg bg-slate-800" />
+                        <div className="flex-1">
+                            <h4 className="font-bold text-white text-xl break-words">{offer.name}</h4>
+                            <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                {offer.location}
+                            </p>
+                            <div className="flex flex-wrap gap-2 mt-3">
+                                {offer.amenities.slice(0, 3).map(am => (
+                                    <span key={am} className="text-[10px] bg-slate-700 px-2 py-1 rounded text-gray-300">{am}</span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-slate-700 pt-4">
+                        <h5 className="text-xs uppercase font-bold text-gray-500 mb-3 tracking-wider">Select Dates</h5>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                            <ModernDatePicker 
+                                label="Check-In" 
+                                value={stayDates.checkIn} 
+                                onChange={(val) => setStayDates(prev => ({...prev, checkIn: val}))}
+                                minDate={new Date().toISOString().split('T')[0]}
+                            />
+                            <ModernDatePicker 
+                                label="Check-Out" 
+                                value={stayDates.checkOut} 
+                                onChange={(val) => setStayDates(prev => ({...prev, checkOut: val}))}
+                                minDate={stayDates.checkIn}
+                            />
+                        </div>
+                        <div className="flex justify-between items-center bg-slate-800 p-3 rounded-lg">
+                            <div className="text-sm text-gray-300">
+                                {offer.price_per_night} {offer.currency} x {calculateNights()} nights
+                            </div>
+                            <div className="font-mono font-bold text-brand-400 text-lg">
+                                {getStayTotal()} {offer.currency}
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
             
+            {/* --- OTHER SUMMARIES --- */}
             {(isCar(offer) || isSecurity(offer) || isExperience(offer)) && (
                  <div className="flex flex-col sm:flex-row gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
                     <img src={offer.image} alt={'title' in offer ? offer.title : offer.model} className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg bg-slate-800" />
