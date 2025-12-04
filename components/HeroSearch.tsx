@@ -121,17 +121,17 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ onSearch }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-10 max-w-2xl px-2"
+          className="text-center mb-10 max-w-3xl px-2"
         >
           <span className="inline-block py-1 px-3 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs md:text-sm font-semibold mb-4 border border-white/30">
             Adventure Awaits
           </span>
           <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-md leading-tight">
-            Explore the World, <br/>
-            <span className="text-brand-orange">Together.</span>
+            Trip Planner for the <br/>
+            <span className="text-brand-orange">Adventurers Always on the Road.</span>
           </h1>
           <p className="text-white/90 text-sm md:text-lg font-medium px-4">
-            Book flights, stays, and safe transport for your next family getaway.
+            Book flights, stays, and safe transport for your next big journey.
           </p>
         </motion.div>
 

@@ -146,7 +146,7 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
                 </div>
                 <div className="w-full md:w-auto text-left md:text-right bg-slate-900/50 p-3 rounded-xl border border-slate-700">
                     <p className="text-xs text-gray-500 mb-1">Total Price</p>
-                    <div className="text-2xl font-bold text-brand-400 font-mono flex items-center justify-start md:justify-end gap-2">
+                    <div className="text-2xl font-bold text-brand-400 font-mono flex items-center justify-start md:justify-end gap-2 flex-wrap">
                         <span>{getDisplayPrice(basePrice, baseCurrency)}</span>
                         <select 
                             value={currency} 
@@ -216,8 +216,8 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
             {isStay(offer) && (
                 <div className="flex flex-col sm:flex-row gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
                     <img src={offer.image} alt={offer.name} className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg bg-slate-800" />
-                    <div>
-                        <h4 className="font-bold text-white text-lg">{offer.name}</h4>
+                    <div className="flex-1">
+                        <h4 className="font-bold text-white text-lg break-words">{offer.name}</h4>
                         <p className="text-sm text-gray-400 mb-2">{offer.location}</p>
                         <div className="flex flex-wrap gap-2">
                             {offer.amenities.slice(0, 3).map(am => (
@@ -231,8 +231,8 @@ export const BookingProcess: React.FC<BookingProcessProps> = ({ offer, onSuccess
             {(isCar(offer) || isSecurity(offer) || isExperience(offer)) && (
                  <div className="flex flex-col sm:flex-row gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
                     <img src={offer.image} alt={'title' in offer ? offer.title : offer.model} className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg bg-slate-800" />
-                    <div>
-                        <h4 className="font-bold text-white text-lg">{'title' in offer ? offer.title : `${offer.brand} ${offer.model}`}</h4>
+                    <div className="flex-1">
+                        <h4 className="font-bold text-white text-lg break-words">{'title' in offer ? offer.title : `${offer.brand} ${offer.model}`}</h4>
                         <p className="text-sm text-gray-400">
                             {'location' in offer ? offer.location : 'type' in offer ? offer.type : ''}
                         </p>
